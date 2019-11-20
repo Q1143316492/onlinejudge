@@ -1,0 +1,4 @@
+[2019/11/18-20:35:27][DEBUG][test_clone.cpp start() :27][clone get child_pid = 31686]
+[2019/11/18-20:35:36][DEBUG][test_clone.cpp start() :27][clone get child_pid = 31704]
+[2019/11/18-20:39:50][DEBUG][test_clone.cpp start() :27][clone get child_pid = 31906]
+[2019/11/18-20:40:11][DEBUG][test_clone.cpp start() :27][clone get child_pid = 31923]
