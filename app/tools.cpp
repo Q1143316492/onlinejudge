@@ -1,15 +1,53 @@
 #include "server_tools.h"
 
-// 字符串相关工具函数
 
-std::string Tools::IntToString(int val)
+bool Tools::isNumber(char *num)
+{
+    for (int i = 0; num[i]; i++ ) {
+        if (num[i] < '0' || num[i] > '9') {
+            return false;
+        }
+    }
+    return true;
+}
+
+std::string Tools::intToString(int val)
 {
     std::stringstream ss;
     ss << val;
     return ss.str();
 }
 
-int Tools::StringToInt(const char *str)
+int Tools::simple_client(std::string str)
+{
+    const char* ip = "127.0.0.1";
+    int port = 7736;
+    
+    struct sockaddr_in server_address;
+    bzero(&server_address, sizeof( server_address ));
+    server_address.sin_family = AF_INET;
+    inet_pton( AF_INET, ip, &server_address.sin_addr );
+    server_address.sin_port = htons( port );
+
+    int sockfd = socket( PF_INET, SOCK_STREAM, 0 );
+    assert( sockfd >= 0 );
+    if(connect( sockfd, (struct sockaddr* )&server_address, sizeof( server_address ) ) < 0 )
+    {
+        printf("connection failed\n");
+    }
+    else
+    {
+        char buf[128] = {};
+        uint32_t len  = htonl(8);
+        uint32_t type = htonl(1001);
+        write(sockfd, &len, 4);
+        write(sockfd, &type, 4);
+        write(sockfd, "name=cwl", 8);
+    }
+    close(sockfd);
+}
+
+int Tools::stringToInt(const char *str)
 {
     int val = 0;
     for(size_t i = 0; str[i]; i++ ) {
@@ -18,7 +56,7 @@ int Tools::StringToInt(const char *str)
     return val;
 }
 
-int Tools::StringToInt(std::string str)
+int Tools::stringToInt(std::string str)
 {
     int val = 0;
     for(size_t i = 0; i < str.size(); i++ ) {

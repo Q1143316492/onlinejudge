@@ -10,6 +10,11 @@ void print_log(const char*file, const char* func, int line, const char* level, c
     write_log_to_file(file, func, line, level, buf);
 }
 
+void write_log_to_stdout(char *buf)
+{
+    printf("%s\n", buf);
+}
+
 void write_log_to_file(const char*file, const char* func, int line, const char* level, const char* buf)
 {
     std::ofstream fs;

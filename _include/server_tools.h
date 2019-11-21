@@ -2,15 +2,24 @@
 #define _CSERVER_EASY_TOOLS_H_
 
 #include <bits/stdc++.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <assert.h>
+#include <unistd.h>
 #include <ctime>
 
 class Tools {
 public:
-    static std::string IntToString(int val);
+    static std::string intToString(int val);
 
-    static int StringToInt(const char *str);
+    static int stringToInt(const char *str);
     
-    static int StringToInt(std::string str);
+    static int stringToInt(std::string str);
+
+    static bool isNumber(char *num);
+
+    static int simple_client(std::string str);
 
     /**
         清除某一行的注释

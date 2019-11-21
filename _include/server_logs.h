@@ -30,6 +30,8 @@
 #define ERR_LOG(args...)        print_log(__FILE__, __FUNCTION__, __LINE__, STR_NO_BUG_LOG_ERR      , args)
 #define CORE_ERR_LOG(args...)   print_log(__FILE__, __FUNCTION__, __LINE__, STR_NO_BUG_LOG_CORE_ERR , args)
 
+void write_log_to_stdout(char *buf);
+
 void print_log(const char* file, const char* func, int line, const char* level, const char* fmt, ...);
 
 void write_log_to_file(const char* file, const char* func, int line, const char* level, const char* buf);

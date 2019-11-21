@@ -2,6 +2,7 @@
 #define _TEST_CLONE_H_
 
 #include "server_logs.h"
+#include "server_macro.h"
 
 #include <sys/wait.h>   // waitpid
 #include <sys/mount.h>  // mount
@@ -11,6 +12,11 @@
 #include <bits/stdc++.h>
 
 #include <dirent.h>
+
+#include <sys/ptrace.h>
+#include <sys/resource.h>
+#include <sys/types.h>
+#include <sys/user.h>
 
 using namespace std;
 
@@ -33,12 +39,17 @@ public:
     void set_hostname();
     void set_rootdir();
     void set_procsys();
+
+    void setRlimit(int pre_time_limit, int pre_memery_limit);
 private:
 
     string host_name;
     string root_dir;
 
     char child_stack[STACK_SIZE];
+
+    char buf[128];
+    int fds[2];
 };
 
 
