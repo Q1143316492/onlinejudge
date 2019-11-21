@@ -146,7 +146,7 @@ void Container::start()
         auto _this = reinterpret_cast<Container *>(args);
 
         _this->set_hostname();
-        _this->set_rootdir();
+        _this->set_rootdir(); 
         _this->set_procsys();
         
         close(_this->fds[0]);
@@ -166,7 +166,7 @@ void Container::start()
             setuid(10000);
             
             // 读取文件
-            // freopen("1.in", "r", stdin);
+            freopen("1.in", "r", stdin);
             freopen("1.out", "w", stdout);
             _this->start_bash();
             

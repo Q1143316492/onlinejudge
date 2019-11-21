@@ -1,9 +1,6 @@
 #ifndef _TEST_CLONE_H_
 #define _TEST_CLONE_H_
 
-#include "server_logs.h"
-#include "server_macro.h"
-
 #include <sys/wait.h>   // waitpid
 #include <sys/mount.h>  // mount
 #include <fcntl.h>      // open
@@ -17,6 +14,9 @@
 #include <sys/resource.h>
 #include <sys/types.h>
 #include <sys/user.h>
+
+#include "server_logs.h"
+#include "server_macro.h"
 
 using namespace std;
 
