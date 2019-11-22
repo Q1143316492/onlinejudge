@@ -1,6 +1,7 @@
 #include <bits/stdc++.h>
 
 #include "online_judge.h"
+#include "server_conf.h"
 #include "server_tools.h"
 #include "server_logs.h"
 #include "server_macro.h"
@@ -9,6 +10,7 @@
 #include<dirent.h>      // opendir
 
 OnlineJudge *judge;
+ServerConf  *sconf;
 
 /**
     参数                        参考值
@@ -24,44 +26,68 @@ OnlineJudge *judge;
     参考值
     =======================
     ./oj 1000 131072 /home/weilinchen/workspace/sandbox/sandbox 127.0.0.1 7736 actid=1001&file=1;2
+
+    ps : main输入参数内存不足，改到配置文件
+    time_limit    = 1000 ms
+    memery_limit  = 131072 kb
+    sandbox_path  = ...
+    callback_ip   = ...
+    callback_port = ... 
+
+    actid = ...
+    file  = ...;...;... // 用;切割文件名  name.in name.out name.ans
+
 */
 int main(int argc, char **argv)
 {
-    if (argc != 7) {
+    if (argc != 2) {
         INFO_LOG("online judge param error. param num = %d not allow", argc);
         exit(0);
     }
+    if (access(argv[1], F_OK)) {
+        INFO_LOG("config file not exist", argc);
+        exit(0);
+    }
     judge = new OnlineJudge();
+    // 加载配置文件
+    sconf = ServerConf::getInstance();
+    sconf->loadCoreConf(argv[1]);
+    
     // 初始化评测时间限制
-    if (!Tools::isNumber(argv[1])) {
+    if (sconf->getIntConf(TIME_LIMIT) == ERROR_CONF_VALUE) {
         ERR_LOG("main param time limit range error");
         exit(0);
     }
-    judge->set_time_limit(Tools::stringToInt(argv[1]));
+    judge->set_time_limit(sconf->getIntConf(TIME_LIMIT));
 
     // 初始化评测内存限制
-    if (!Tools::isNumber(argv[2])) {
+    if (sconf->getIntConf(MEMERY_LIMIT) == ERROR_CONF_VALUE) {
         ERR_LOG("main param memery limit range error");
         exit(0);
     }
-    judge->set_memery_limit(Tools::stringToInt(argv[2]));
+    judge->set_memery_limit(sconf->getIntConf(MEMERY_LIMIT));
 
     // 初始化沙盒文件夹目录绝对路径
-    if (strlen(argv[3]) > 128 || opendir(argv[3]) == NULL) {
+    std::string sandbox_path = sconf->getStrConf(SANDBOX_PATH);
+    if (sandbox_path.size() == 0 || sandbox_path.size() > 128 || opendir(sandbox_path.c_str()) == NULL) {
         ERR_LOG("main param sandbox absolute path not exist or error");
         exit(0);
     }
-    judge->set_sandbox_absolute_path(argv[3]);
+    judge->set_sandbox_absolute_path(sandbox_path);
 
     // 设置回调ip, 端口
-    judge->set_callback(argv[4], argv[5]);
+    judge->set_callback(sconf->getStrConf(CALLBACK_IP), sconf->getStrConf(CALLBACK_PORT));
 
-    // 设置扩展参数
-    judge->set_ext_param(argv[6]);
+    // 设置扩展参数 这个暂时没用
+    judge->set_ext_param(sconf->getStrConf(EXT_PARAM));
+    
+    std::string actid = sconf->getStrConf(JUDGE_ACTION);
+    std::string files = sconf->getStrConf(JUDGE_FILES);
+    judge->set_judging(actid, files);
 
-    // judge->prepare_run();
-    // judge->start_run();
-    // judge->finish_run();
+    judge->prepare_run();
+    judge->start_run();
+    judge->finish_run();
     
     return 0;
 }

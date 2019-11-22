@@ -38,6 +38,7 @@ public:
     void set_sandbox_absolute_path(string path);
     void set_callback(string ip, string port);
     void set_ext_param(string strExtParam);
+    void set_judging(string actid, string files);
 
     void set_hostname();
     void set_rootdir();
@@ -55,22 +56,27 @@ public:
 
 private:
 
-    int32_t     m_time_limit;
-    int32_t     m_memery_limit;
-    int32_t     m_stack_limit;      // kb 
-    int32_t     m_output_limit;     // kb
+    int32_t                 m_time_limit;
+    int32_t                 m_memery_limit;
+    int32_t                 m_stack_limit;      // kb 
+    int32_t                 m_output_limit;     // kb
 
-    string      m_sandbox_absolute_path;
-    string      m_callback_ip;
-    string      m_callback_port;
-    string      m_str_ext_param;
-    string      m_result_msg;
-    string      m_hostname;
+    string                  m_sandbox_absolute_path;
+    string                  m_callback_ip;
+    string                  m_callback_port;
+    string                  m_str_ext_param;
+    string                  m_result_msg;
+    string                  m_hostname;
 
-    map<string, string> m_map_ext_param;
+    string                  m_act_id;
+    string                  m_str_judge_file;
+
+    map<string, string>     m_map_ext_param;
     
     char        *m_child_stack;
     int32_t     m_pipe_fds[2];
+
+    bool        m_is_stop;
 };
 
 #endif

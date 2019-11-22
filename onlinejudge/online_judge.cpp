@@ -5,6 +5,7 @@ OnlineJudge::OnlineJudge()
     m_child_stack  = new char[STACK_SIZE];
     m_stack_limit  = 256 * 1024;
     m_output_limit = 512 * 1024;
+    m_is_stop      = false;
 }
 
 OnlineJudge::~OnlineJudge()
@@ -185,12 +186,6 @@ void OnlineJudge::run_default_action()
 
     auto setup = [](void *args) -> int {
         auto _this = reinterpret_cast<OnlineJudge *>(args);
-
-        vector<string>judge_files = Tools::splitString(_this->m_map_ext_param["file"], ';');
-
-        for (size_t i = 0; i < judge_files.size(); i++ ) {
-            cout << judge_files[i] << endl;
-        }
         _this->set_hostname();
         _this->set_rootdir(); 
         _this->set_procsys();
@@ -208,17 +203,14 @@ void OnlineJudge::run_default_action()
             if (_this->set_lower_power() == -1) {
                 return 1;
             }
-            
-            // for (size_t i = 0; i < judge_files.size(); i++ ) {
-            //     stringstream infile;
-            //     stringstream outfile;
-            //     infile << judge_files[i] << ".in";
-            //     outfile << judge_files[i] << ".out";
-            //     _this->set_freopen(infile.str(), outfile.str());
-            //     if (_this->start_main("/main") == -1) {
-            //         return 1;
-            //     }
-            // }
+            stringstream infile;
+            stringstream outfile;
+            infile << _this->m_str_judge_file << ".in";
+            outfile << _this->m_str_judge_file << ".out";
+            _this->set_freopen(infile.str(), outfile.str());
+            if (_this->start_main("/main") == -1) {
+                return 1;
+            }
             return 0;
         } else {       // father
             string result = _this->wait_result(pid);
@@ -259,18 +251,24 @@ void OnlineJudge::prepare_run()
             m_map_ext_param[kv[0]] = kv[1];
         }
     }
-    vector<string>judge_files = Tools::splitString(this->m_map_ext_param["file"], ';');
-
-    for (size_t i = 0; i < judge_files.size(); i++ ) {
-        cout << judge_files[i] << endl;
+    stringstream judge_file_abs_path;
+    judge_file_abs_path << m_sandbox_absolute_path << "/" << "main";
+    if (access(judge_file_abs_path.str().c_str(), F_OK)) {
+        ERR_LOG("judge file not exist.");
+        m_is_stop = true;
+        return;
     }
 }
 
 void OnlineJudge::start_run()
 {
-    if (OJ_DEFAULT_ACT == m_map_ext_param["actid"]) {
-        INFO_LOG("online default action. main.cpp < data.in > data.out");
-        // run_default_action();
+    if (m_is_stop) {
+        INFO_LOG("start_run() exit.");
+        return; 
+    }
+    if (OJ_DEFAULT_ACT == m_act_id) {
+        INFO_LOG("online default action.");
+        run_default_action();
         return;
     }
     INFO_LOG("online mode action not define");
@@ -289,10 +287,14 @@ void OnlineJudge::print_judge_msg()
     cout << "callback_ip: "           << m_callback_ip << endl;
     cout << "callback_port: "         << m_callback_port << endl;
     cout << "ext_param: "             << m_str_ext_param << endl;
+    cout << "m_act_id: "              << m_act_id << endl;
+    cout << "m_str_judge_file: "     << m_str_judge_file << endl;
+}
 
-    for (auto &item : m_map_ext_param) {
-        cout << item.first << " = " << item.second << endl; 
-    }
+void OnlineJudge::set_judging(string actid, string files)
+{
+    m_act_id = actid;
+    m_str_judge_file = files;
 }
 
 void OnlineJudge::set_time_limit(int iTimeLimit)
