@@ -6,8 +6,10 @@
 #include <bits/stdc++.h>
 #include <stdarg.h>
 
-#define DEFAULT_LOG_PATH "logs/"
-#define MAX_LOG_MSG_SIZE 128
+#define DEFAULT_LOG_PATH "judginglogs/"
+#define MAX_LOG_MSG_SIZE 1024
+
+extern std::string g_log_path;
 
 #define NO_BUG_LOG_CORE_ERR          5    //严重错误 【error】
 #define NO_BUG_LOG_ERR               4    //错误 【error】

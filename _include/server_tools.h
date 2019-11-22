@@ -1,6 +1,8 @@
 #ifndef _CSERVER_EASY_TOOLS_H_
 #define _CSERVER_EASY_TOOLS_H_
 
+#include "server_logs.h"
+
 #include <bits/stdc++.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -19,7 +21,7 @@ public:
 
     static bool isNumber(char *num);
 
-    static int simple_client(std::string str);
+    static int callback_client(std::string msg, std::string ip, std::string port, int callbasktype);
 
     /**
         清除某一行的注释

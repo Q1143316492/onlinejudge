@@ -13,10 +13,91 @@ OnlineJudge::~OnlineJudge()
     delete [] m_child_stack;
 }
 
-string OnlineJudge::pack_result(string ret, int time, int memery)
+int OnlineJudge::compare_answer(string &msg)
+{
+    std::stringstream cmpFileAns;
+    std::stringstream cmpFileStd;
+
+    cmpFileAns << m_sandbox_absolute_path << "/" << m_str_judge_file << ".out";
+    cmpFileStd << m_sandbox_absolute_path << "/" << m_str_judge_file << ".ans";
+    
+    int ansfd = open(cmpFileAns.str().c_str(), O_RDONLY);
+    int stdfd = open(cmpFileStd.str().c_str(), O_RDONLY);
+
+    char chans = 0, chstd = 0;
+    int retans = 0, retstd = 0;
+
+    if (ansfd == -1 || stdfd == -1) {
+        msg = "open judge file first error";
+        return -1;
+    }
+
+    // #define CMP_RET_AC 0
+    // #define CMP_RET_PE 1
+    // #define CMP_RET_WA 2
+
+    int flag = 0;
+    while (true) {
+        retans = read(ansfd, &chans, 1);
+        retstd = read(stdfd, &chstd, 1);
+        if (retans == 0 && retstd == 0) {
+            break;
+        }
+        if (retans && retstd && chans == chstd) {
+            continue;
+        } else {
+            flag = CMP_RET_WA;
+            break;
+        }
+    }
+    close(ansfd);
+    close(stdfd);
+    if (flag == CMP_RET_AC) {
+        return flag;
+    }
+    ansfd = open(cmpFileAns.str().c_str(), O_RDONLY);
+    stdfd = open(cmpFileStd.str().c_str(), O_RDONLY);
+    
+    if (ansfd == -1 || stdfd == -1) {
+        msg = "open judge file second error";
+        return -1;
+    }
+    flag = 1;
+    while (true) {
+        while (true) {
+            retans = read(ansfd, &chans, 1);
+            if (retans == 0 || (chans != ' ' && chans != '\n' && chans != '\t')) {
+                break;
+            }
+        }
+        while (true) {
+            retstd = read(stdfd, &chstd, 1);
+            if (retstd == 0 || (chstd != ' ' && chstd != '\n' && chstd != '\t')) {
+                break;
+            }
+        }
+        if (retans == 0 && retstd == 0) break;
+        if (retans == 0 || retstd == 0 || chans != chstd) {
+            flag = CMP_RET_WA;
+            break;
+        } 
+    } 
+    close(ansfd);
+    close(stdfd);
+    return flag;
+}
+
+string OnlineJudge::pack_result(string ret, int time, int memery, string msg)
 {
     stringstream ss;
-    ss << ret << ";" << time << ";" << memery;
+    ss << ret << "," << time << "," << memery << "," << msg;
+    return ss.str();
+}
+
+string OnlineJudge::pack_result(string ret, string time, string memery, string msg)
+{
+    stringstream ss;
+    ss << ret << "," << time << "," << memery << "," << msg;
     return ss.str();
 }
 
@@ -34,7 +115,7 @@ string OnlineJudge::wait_result(pid_t child_pid)
     if (ret_pid == -1) {
         ERR_LOG("wait4 ERROR");
         perror("wait4 ERROR");
-        return this->pack_result(SE1, 0, 0);
+        return this->pack_result(SE1, 0, 0, "");
     }
 
     run_time = ru.ru_utime.tv_sec * 1000
@@ -73,11 +154,7 @@ string OnlineJudge::wait_result(pid_t child_pid)
             run_result = MLE;
         }
     }
-    // 开始答案比对
-    if (run_result == AC) {
-
-    }
-    return pack_result(run_result, run_time, run_memery);
+    return pack_result(run_result, run_time, run_memery, "");
 }
 
 int OnlineJudge::start_main(string bash)
@@ -232,13 +309,31 @@ void OnlineJudge::run_default_action()
                         this);
     close(this->m_pipe_fds[1]);
 
-    // 管道读取结果
+    // 管道读取容器内评测结果
     char buf[128] = {};
     read(this->m_pipe_fds[0], buf, 128);
-    DEBUG_LOG("pipe {%s}", buf);
+    DEBUG_LOG("pipe (%s)", buf);
     waitpid(child_pid, nullptr, 0);
 
-
+    vector<string>vecRet = Tools::splitString(buf, ',');
+    if (vecRet.size() < 3) {
+        ERR_LOG("judge error");
+        return;
+    }
+    string run_msg = "";
+    if (vecRet[0] == AC) {
+        int ret = this->compare_answer(run_msg);
+        if (ret == -1) {
+            vecRet[0] = SE1;
+        }
+        if (ret == CMP_RET_PE) {
+            vecRet[0] = PE;
+        }
+        if (ret == CMP_RET_WA) {
+            vecRet[0] = WA;
+        }
+    }
+    m_judge_result = pack_result(vecRet[0], vecRet[1], vecRet[2], run_msg);
 }
 
 void OnlineJudge::prepare_run()
@@ -276,7 +371,7 @@ void OnlineJudge::start_run()
 
 void OnlineJudge::finish_run()
 {
-
+    Tools::callback_client(m_judge_result, m_callback_ip, m_callback_port, JUDGE_CALLBACK_TYPE);
 }
 
 void OnlineJudge::print_judge_msg()

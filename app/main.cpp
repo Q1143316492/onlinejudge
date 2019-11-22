@@ -6,11 +6,17 @@
 #include "server_logs.h"
 #include "server_macro.h"
 
-#include<sys/types.h>   // DIR
-#include<dirent.h>      // opendir
+#include "union_test.h"
+
+#include <sys/types.h>   // DIR
+#include <dirent.h>      // opendir
+#include <sys/stat.h>
+#include <sys/types.h>
 
 OnlineJudge *judge;
 ServerConf  *sconf;
+
+std::string g_log_path = DEFAULT_LOG_PATH;
 
 /**
     参数                        参考值
@@ -48,6 +54,16 @@ int main(int argc, char **argv)
         INFO_LOG("config file not exist", argc);
         exit(0);
     }
+    if (mkdir(DEFAULT_LOG_PATH, S_IWUSR) == -1) {
+        INFO_LOG("create log dir fail.");
+    } else {
+        INFO_LOG("log file not exist. create log dir success.");
+    }
+    if (opendir(DEFAULT_LOG_PATH) == NULL) {
+        INFO_LOG("log path not exist. use local path.");
+        g_log_path = "./";
+    }
+
     judge = new OnlineJudge();
     // 加载配置文件
     sconf = ServerConf::getInstance();

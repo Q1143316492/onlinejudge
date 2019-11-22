@@ -19,7 +19,7 @@ void write_log_to_file(const char*file, const char* func, int line, const char* 
 {
     std::ofstream fs;
     std::stringstream ss;
-    ss << DEFAULT_LOG_PATH;
+    ss << g_log_path;
     ss << Tools::serializeDate('-') << ".log";
     fs.open(ss.str(), std::ios::app);
     if (!fs.is_open()) {

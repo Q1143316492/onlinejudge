@@ -18,33 +18,37 @@ std::string Tools::intToString(int val)
     return ss.str();
 }
 
-int Tools::simple_client(std::string str)
+int Tools::callback_client(std::string msg, std::string ip, std::string port, int callbasktype)
 {
-    const char* ip = "127.0.0.1";
-    int port = 7736;
-    
     struct sockaddr_in server_address;
-    bzero(&server_address, sizeof( server_address ));
+    bzero(&server_address, sizeof(server_address));
     server_address.sin_family = AF_INET;
-    inet_pton( AF_INET, ip, &server_address.sin_addr );
-    server_address.sin_port = htons( port );
+    inet_pton( AF_INET, ip.c_str(), &server_address.sin_addr );
+    server_address.sin_port = htons(Tools::stringToInt(port.c_str()));
 
-    int sockfd = socket( PF_INET, SOCK_STREAM, 0 );
-    assert( sockfd >= 0 );
-    if(connect( sockfd, (struct sockaddr* )&server_address, sizeof( server_address ) ) < 0 )
+    int sockfd = socket(PF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0) {
+        ERR_LOG("callbask socket create fail, msg = %s, ip = %s, port = %s", msg.c_str(), ip.c_str(), port.c_str());
+        return -1;
+    }
+    if (connect(sockfd, (struct sockaddr*)&server_address, sizeof( server_address )) < 0)
     {
-        printf("connection failed\n");
+        ERR_LOG("callbask connect fail, msg = %s, ip = %s, port = %s", msg.c_str(), ip.c_str(), port.c_str());
+        return -1;
     }
     else
     {
+        std::stringstream ss;
+        ss << "ret=0&msg=" << msg.c_str();
         char buf[128] = {};
-        uint32_t len  = htonl(8);
-        uint32_t type = htonl(1001);
+        uint32_t len  = htonl(ss.str().size());
+        uint32_t type = htonl(callbasktype);
         write(sockfd, &len, 4);
         write(sockfd, &type, 4);
-        write(sockfd, "name=cwl", 8);
+        write(sockfd, ss.str().c_str(), len);
     }
     close(sockfd);
+    return 0;
 }
 
 int Tools::stringToInt(const char *str)

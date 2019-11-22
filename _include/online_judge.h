@@ -48,9 +48,11 @@ public:
     int set_lower_power();
     int set_freopen(string in, string out);
     int start_main(string bash);
+    int compare_answer(string &msg);
 
     string wait_result(pid_t pid);
-    string pack_result(string ret, int time, int memery);
+    string pack_result(string ret, int time, int memery, string msg);
+    string pack_result(string ret, string time, string memery, string msg);
 
     void print_judge_msg();
 
@@ -70,6 +72,7 @@ private:
 
     string                  m_act_id;
     string                  m_str_judge_file;
+    string                  m_judge_result;
 
     map<string, string>     m_map_ext_param;
     

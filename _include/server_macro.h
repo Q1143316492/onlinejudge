@@ -31,9 +31,15 @@
 #define OLE   "PE"
 #define MLE   "PE"
 
+#define CMP_RET_AC 0
+#define CMP_RET_PE 1
+#define CMP_RET_WA 2
+
 // 评测机默认行为，评测沙盒下 main.cpp < data.in > data.out 答案文件 ans.txt
 
 #define OJ_DEFAULT_ACT  "1001"
+
+#define JUDGE_CALLBACK_TYPE 1001
 
 #define STACK_SIZE (512 * 512)
 
