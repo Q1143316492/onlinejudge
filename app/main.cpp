@@ -69,6 +69,12 @@ int main(int argc, char **argv)
     sconf = ServerConf::getInstance();
     sconf->loadCoreConf(argv[1]);
     
+    // 设置评测机id
+    if (sconf->getStrConf(JUDGE_ID) == "") {
+        ERR_LOG("judge id not set");
+        exit(0);
+    }
+
     // 初始化评测时间限制
     if (sconf->getIntConf(TIME_LIMIT) == ERROR_CONF_VALUE) {
         ERR_LOG("main param time limit range error");

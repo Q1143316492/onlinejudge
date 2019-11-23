@@ -8,7 +8,7 @@
 // conf
 
 #define MAX_CONF_LINE_SIZE 1024
-
+#define JUDGE_ID        "judge_id"
 #define TIME_LIMIT      "time_limit"
 #define MEMERY_LIMIT    "memery_limit"
 #define SANDBOX_PATH    "sandbox_path"
@@ -38,6 +38,7 @@
 // 评测机默认行为，评测沙盒下 main.cpp < data.in > data.out 答案文件 ans.txt
 
 #define OJ_DEFAULT_ACT  "1001"
+#define OJ_RUN_BASH     "1002"
 
 #define JUDGE_CALLBACK_TYPE 1001
 

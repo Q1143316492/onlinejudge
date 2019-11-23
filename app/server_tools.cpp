@@ -38,6 +38,7 @@ int Tools::callback_client(std::string msg, std::string ip, std::string port, in
     }
     else
     {
+        msg = msg.substr(0, 1024);
         std::stringstream ss;
         ss << "ret=0&msg=" << msg.c_str();
         char buf[128] = {};

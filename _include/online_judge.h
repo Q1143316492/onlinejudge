@@ -35,10 +35,11 @@ public:
 
     void set_time_limit(int iTimeLimit);
     void set_memery_limit(int iMemeryLimit);
-    void set_sandbox_absolute_path(string path);
-    void set_callback(string ip, string port);
-    void set_ext_param(string strExtParam);
-    void set_judging(string actid, string files);
+    void set_sandbox_absolute_path(const string &path);
+    void set_callback(const string &ip, const string &port);
+    void set_ext_param(const string &strExtParam);
+    void set_judge_id(const string &id);
+    void set_judging(const string &actid, const string &files);
 
     void set_hostname();
     void set_rootdir();
@@ -49,6 +50,7 @@ public:
     int set_freopen(string in, string out);
     int start_main(string bash);
     int compare_answer(string &msg);
+    int compile_cpp(string file);
 
     string wait_result(pid_t pid);
     string pack_result(string ret, int time, int memery, string msg);
@@ -69,10 +71,13 @@ private:
     string                  m_str_ext_param;
     string                  m_result_msg;
     string                  m_hostname;
+    string                  m_exec_file;
 
+    string                  m_judge_id;
     string                  m_act_id;
     string                  m_str_judge_file;
     string                  m_judge_result;
+    string                  m_compile_error;
 
     map<string, string>     m_map_ext_param;
     

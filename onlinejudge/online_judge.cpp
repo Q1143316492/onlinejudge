@@ -268,6 +268,11 @@ void OnlineJudge::run_default_action()
         _this->set_procsys();
         close(_this->m_pipe_fds[0]);
         
+        if (_this->m_act_id == OJ_RUN_BASH) {
+            _this->start_main(_this->m_exec_file);
+            return 0;
+        }
+
         pid_t pid = fork();
         if (pid == -1) {
             ERR_LOG("contain fork() error");
@@ -285,7 +290,7 @@ void OnlineJudge::run_default_action()
             infile << _this->m_str_judge_file << ".in";
             outfile << _this->m_str_judge_file << ".out";
             _this->set_freopen(infile.str(), outfile.str());
-            if (_this->start_main("/main") == -1) {
+            if (_this->start_main(_this->m_exec_file) == -1) {
                 return 1;
             }
             return 0;
@@ -347,12 +352,43 @@ void OnlineJudge::prepare_run()
         }
     }
     stringstream judge_file_abs_path;
-    judge_file_abs_path << m_sandbox_absolute_path << "/" << "main";
+    judge_file_abs_path << m_sandbox_absolute_path << "/" << "main.cpp";
     if (access(judge_file_abs_path.str().c_str(), F_OK)) {
         ERR_LOG("judge file not exist.");
         m_is_stop = true;
         return;
     }
+}
+
+int OnlineJudge::compile_cpp(string compilefile)
+{
+    stringstream cmd;
+    cmd << "g++ " << (m_sandbox_absolute_path + compilefile) << " -o";
+    cmd << (m_sandbox_absolute_path + "/main");
+    cmd << " -Wall -std=c++14 ";
+    cmd << " 1>" << (m_sandbox_absolute_path + "/msg.log");
+    cmd << " 2>" << (m_sandbox_absolute_path + "/err.log");
+    system(cmd.str().c_str());
+    
+    std::string errlog = m_sandbox_absolute_path + "/err.log";
+
+    std::ifstream file(errlog.c_str());
+    std::string tmp;
+    std::string msg;
+    m_compile_error = "";
+    while(file.is_open() && !file.eof()) {
+        getline(file, tmp);
+        m_compile_error += tmp;
+    }
+    file.close();
+    if (m_compile_error.size() != 0) {
+        return -1;
+    } 
+    std::string execfile = m_sandbox_absolute_path + "/main";
+    if (access(execfile.c_str(), F_OK)) {
+        m_compile_error = "compile fail. reason unknow";
+    }
+    return m_compile_error.size();
 }
 
 void OnlineJudge::start_run()
@@ -361,8 +397,22 @@ void OnlineJudge::start_run()
         INFO_LOG("start_run() exit.");
         return; 
     }
-    if (OJ_DEFAULT_ACT == m_act_id) {
+    if (m_act_id == OJ_DEFAULT_ACT) {
         INFO_LOG("online default action.");
+        m_exec_file = "/main";
+        INFO_LOG("begin compile");
+        int cnt = compile_cpp("/main.cpp");
+        if (cnt != 0) {
+            INFO_LOG("compile_cpp fail [%s] %d %d", m_compile_error.c_str(), m_compile_error.size(), cnt);
+            m_judge_result = pack_result(CE, "0", "0", m_compile_error);
+            return;
+        }
+        run_default_action();
+        return;
+    }    
+    if (m_act_id == OJ_RUN_BASH) {
+        INFO_LOG("online default action.");
+        m_exec_file = "/bin/bash";
         run_default_action();
         return;
     }
@@ -386,10 +436,15 @@ void OnlineJudge::print_judge_msg()
     cout << "m_str_judge_file: "     << m_str_judge_file << endl;
 }
 
-void OnlineJudge::set_judging(string actid, string files)
+void OnlineJudge::set_judging(const string &actid, const string &files)
 {
     m_act_id = actid;
     m_str_judge_file = files;
+}
+
+void OnlineJudge::set_judge_id(const string &id)
+{
+    m_judge_id = id;
 }
 
 void OnlineJudge::set_time_limit(int iTimeLimit)
@@ -402,18 +457,18 @@ void OnlineJudge::set_memery_limit(int iMemeryLimit)
     m_memery_limit = iMemeryLimit;
 }
 
-void OnlineJudge::set_sandbox_absolute_path(string path)
+void OnlineJudge::set_sandbox_absolute_path(const string &path)
 {
     m_sandbox_absolute_path = path;
 }
 
-void OnlineJudge::set_callback(string ip, string port)
+void OnlineJudge::set_callback(const string &ip, const string &port)
 {
     m_callback_ip = ip;
     m_callback_port = port;
 }
 
-void OnlineJudge::set_ext_param(string strExtParam)
+void OnlineJudge::set_ext_param(const string &strExtParam)
 {
     m_str_ext_param = strExtParam;
 }
