@@ -90,7 +90,7 @@ int OnlineJudge::compare_answer(string &msg)
 string OnlineJudge::pack_result(string ret, int time, int memery, string msg)
 {
     stringstream ss;
-    ss << ret << "," << time << "," << memery << "," << msg;
+    ss << m_judge_id << "," << ret << "," << time << "," << memery << "," << msg;
     return ss.str();
 }
 
@@ -320,22 +320,23 @@ void OnlineJudge::run_default_action()
     DEBUG_LOG("pipe (%s)", buf);
     waitpid(child_pid, nullptr, 0);
 
+    // 评测id,结果,时间,内存,[额外消息]
     vector<string>vecRet = Tools::splitString(buf, ',');
-    if (vecRet.size() < 3) {
+    if (vecRet.size() < 4) {
         ERR_LOG("judge error");
         return;
     }
     string run_msg = "";
-    if (vecRet[0] == AC) {
+    if (vecRet[1] == AC) {
         int ret = this->compare_answer(run_msg);
         if (ret == -1) {
-            vecRet[0] = SE1;
+            vecRet[1] = SE1;
         }
         if (ret == CMP_RET_PE) {
-            vecRet[0] = PE;
+            vecRet[1] = PE;
         }
         if (ret == CMP_RET_WA) {
-            vecRet[0] = WA;
+            vecRet[1] = WA;
         }
     }
     m_judge_result = pack_result(vecRet[0], vecRet[1], vecRet[2], run_msg);

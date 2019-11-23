@@ -74,6 +74,7 @@ int main(int argc, char **argv)
         ERR_LOG("judge id not set");
         exit(0);
     }
+    judge->set_judge_id(sconf->getStrConf(JUDGE_ID));
 
     // 初始化评测时间限制
     if (sconf->getIntConf(TIME_LIMIT) == ERROR_CONF_VALUE) {
